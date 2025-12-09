@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
 from src.schemas.auth import LoginRequest, Token, RefreshTokenRequest
+from src.schemas.response import APIResponse
 from src.crud.users import UserCRUD
 from src.core.auth import (
     verify_password,
@@ -24,7 +25,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=APIResponse[Token])
 async def login(
     payload: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
 ):
@@ -40,14 +41,15 @@ async def login(
 
     access_token = create_access_token({"user_id": str(user.id)})
     refresh_token = create_refresh_token({"user_id": str(user.id)})
-    return {
+    token_data = {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
+    return APIResponse(success=True, message="Login successful", data=token_data)
 
 
-@router.post("/refresh", response_model=Token)
+@router.post("/refresh", response_model=APIResponse[Token])
 async def refresh_token(
     payload: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
 ):
@@ -67,14 +69,15 @@ async def refresh_token(
 
     new_access_token = create_access_token({"user_id": str(user.id)})
     new_refresh_token = create_refresh_token({"user_id": str(user.id)})
-    return {
+    token_data = {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
+    return APIResponse(success=True, message="Token refreshed successfully", data=token_data)
 
 
-@router.post("/send-email-otp")
+@router.post("/send-email-otp", response_model=APIResponse[dict])
 async def send_email_otp(email: str, db: AsyncSession = Depends(get_db)):
     user = await UserCRUD.get_user_by_email(db, email)
     if not user:
@@ -90,10 +93,10 @@ async def send_email_otp(email: str, db: AsyncSession = Depends(get_db)):
 
     await send_otp_email_verification(email, otp)
 
-    return {"message": "OTP sent to email"}
+    return APIResponse(success=True, message="OTP sent to email", data={"email": email})
 
 
-@router.post("/verify-email-otp")
+@router.post("/verify-email-otp", response_model=APIResponse[dict])
 async def verify_email_otp(email: str, otp: str, db: AsyncSession = Depends(get_db)):
     user = await UserCRUD.get_user_by_email(db, email)
     if not user or not user.email_verify_token:
@@ -118,10 +121,10 @@ async def verify_email_otp(email: str, otp: str, db: AsyncSession = Depends(get_
     await db.commit()
     await db.refresh(user)
 
-    return {"message": "Email verified successfully"}
+    return APIResponse(success=True, message="Email verified successfully", data=None)
 
 
-@router.post("/change-password")
+@router.post("/change-password", response_model=APIResponse[dict])
 async def change_password(
     current_password: str,
     new_password: str,
@@ -141,10 +144,10 @@ async def change_password(
     await db.commit()
     await db.refresh(db_user)
 
-    return {"message": "Password changed successfully"}
+    return APIResponse(success=True, message="Password changed successfully", data=None)
 
 
-@router.post("/forgot-password")
+@router.post("/forgot-password", response_model=APIResponse[dict])
 async def forgot_password(email: str, db: AsyncSession = Depends(get_db)):
     user = await UserCRUD.get_user_by_email(db, email)
     if not user:
@@ -160,10 +163,10 @@ async def forgot_password(email: str, db: AsyncSession = Depends(get_db)):
 
     await send_otp_email_verification(email, otp)
 
-    return {"message": "Password reset OTP sent"}
+    return APIResponse(success=True, message="Password reset OTP sent", data={"email": email})
 
 
-@router.post("/reset-password")
+@router.post("/reset-password", response_model=APIResponse[dict])
 async def reset_password(
     email: str,
     otp: str,
@@ -194,4 +197,4 @@ async def reset_password(
     await db.commit()
     await db.refresh(user)
 
-    return {"message": "Password reset successful"}
+    return APIResponse(success=True, message="Password reset successful", data=None)

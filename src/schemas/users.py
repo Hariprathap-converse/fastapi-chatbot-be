@@ -4,15 +4,18 @@ import re
 
 
 class UserCreate(BaseModel):
-    first_name: str = Field(..., max_length=100, description="User's first name")
-    last_name: str = Field(..., max_length=100, description="User's last name")
+    first_name: str = Field(..., min_length=1, max_length=100, description="User's first name")
+    last_name: str = Field(..., min_length=1, max_length=100, description="User's last name")
     email: EmailStr = Field(..., description="User's email address")
     phone_number: str = Field(
-        ..., max_length=15, description="User's phone number with country code"
+        ..., min_length=1, max_length=15, description="User's phone number with country code"
     )
     password: str = Field(
         ..., min_length=6, description="User's password, minimum 6 characters"
     )
+
+    class Config:
+        str_strip_whitespace = True
 
     @validator("phone_number")
     def validate_phone(cls, v):
@@ -23,10 +26,13 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
+    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[EmailStr] = None
-    phone_number: Optional[str] = Field(None, max_length=15)
+    phone_number: Optional[str] = Field(None, min_length=1, max_length=15)
+
+    class Config:
+        str_strip_whitespace = True
 
     @validator("phone_number")
     def validate_phone(cls, v):
