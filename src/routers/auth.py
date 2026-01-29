@@ -1,8 +1,12 @@
 import jwt
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
-from src.schemas.auth import LoginRequest, Token, RefreshTokenRequest
+from src.schemas.auth import LoginRequest, Token, RefreshTokenRequest, SendEmailRequest
 from src.schemas.response import APIResponse
 from src.crud.users import UserCRUD
 from src.core.auth import (
@@ -23,6 +27,52 @@ from src.core.auth import get_current_user
 from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+@router.post("/tools-send-email", response_model=APIResponse[dict])
+async def tools_send_email(
+    payload: SendEmailRequest,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    sender_email = os.getenv("SENDER_EMAIL")
+    email_password = os.getenv("EMAIL_PASSWORD")
+
+    if not sender_email or not email_password:
+        raise HTTPException(
+            status_code=500,
+            detail="Email credentials not configured on server"
+        )
+
+    try:
+        # Create message
+        msg = MIMEMultipart()
+        msg["From"] = sender_email
+        msg["To"] = payload.recipient_email
+        msg["Subject"] = payload.subject
+
+        msg.attach(MIMEText(payload.body, "plain"))
+
+        # Connect to server
+        # Assuming Gmail based on the address loggerkey314@gmail.com
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, email_password)
+        text = msg.as_string()
+        server.sendmail(sender_email, payload.recipient_email, text)
+        server.quit()
+
+        return APIResponse(
+            success=True,
+            message="Email sent successfully",
+            data={"recipient": payload.recipient_email}
+        )
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send email: {str(e)}"
+        )
+
 
 
 @router.post("/login", response_model=APIResponse[Token])
