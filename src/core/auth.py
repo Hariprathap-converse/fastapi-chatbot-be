@@ -25,7 +25,7 @@ if len(SECRET_KEY) < 32 or len(REFRESH_SECRET_KEY) < 32:
     raise ValueError("Secret keys must be at least 32 characters long")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
+ACCESS_TOKEN_EXPIRE_MINUTES = 90
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")

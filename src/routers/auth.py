@@ -31,8 +31,6 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/tools-send-email", response_model=APIResponse[dict])
 async def tools_send_email(
     payload: SendEmailRequest,
-    db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
 ):
     sender_email = os.getenv("SENDER_EMAIL")
     email_password = os.getenv("EMAIL_PASSWORD")
