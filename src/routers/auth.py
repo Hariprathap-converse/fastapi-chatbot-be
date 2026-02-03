@@ -4,6 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
 from src.schemas.auth import LoginRequest, Token, RefreshTokenRequest, SendEmailRequest
@@ -21,6 +22,7 @@ from src.utils.email_token import (
     generate_email_otp_token,
     send_otp_email_verification,
     hash_otp,
+    send_email,
 )
 from datetime import datetime, timezone
 from src.core.auth import get_current_user
@@ -122,7 +124,9 @@ async def refresh_token(
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
-    return APIResponse(success=True, message="Token refreshed successfully", data=token_data)
+    return APIResponse(
+        success=True, message="Token refreshed successfully", data=token_data
+    )
 
 
 @router.post("/send-email-otp", response_model=APIResponse[dict])
@@ -142,6 +146,12 @@ async def send_email_otp(email: str, db: AsyncSession = Depends(get_db)):
     await send_otp_email_verification(email, otp)
 
     return APIResponse(success=True, message="OTP sent to email", data={"email": email})
+
+
+@router.post("/tools-send-email")
+async def tool_send_email(payload: SendEmailRequest):
+    send_email(payload.recipient_email, payload.subject, payload.body)
+    return APIResponse(success=True, message="Email sent successfully", data=None)
 
 
 @router.post("/verify-email-otp", response_model=APIResponse[dict])
@@ -211,7 +221,9 @@ async def forgot_password(email: str, db: AsyncSession = Depends(get_db)):
 
     await send_otp_email_verification(email, otp)
 
-    return APIResponse(success=True, message="Password reset OTP sent", data={"email": email})
+    return APIResponse(
+        success=True, message="Password reset OTP sent", data={"email": email}
+    )
 
 
 @router.post("/reset-password", response_model=APIResponse[dict])

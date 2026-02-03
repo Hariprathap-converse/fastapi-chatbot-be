@@ -66,3 +66,37 @@ async def send_otp_email_verification(recipient_email: EmailStr, otp: str):
             detail=f"Failed to send OTP email: {str(e)}",
             headers={"message": "OTP Send"},
         )
+
+
+def send_email(
+    recipient_email: EmailStr,
+    subject: str | None,
+    body: str,
+):
+    sender_email = os.getenv("SENDER_EMAIL")
+    password = os.getenv("EMAIL_PASSWORD")
+
+    if not sender_email or not password:
+        raise HTTPException(
+            status_code=500,
+            detail="Email credentials are not configured properly",
+        )
+    if subject is None or subject.strip() == "":
+        subject = "mail from converse data solutions"
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = recipient_email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(sender_email, password)
+            server.sendmail(sender_email, recipient_email, message.as_string())
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send email: {str(e)}",
+        )
