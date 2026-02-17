@@ -226,6 +226,28 @@ async def forgot_password(email: str, db: AsyncSession = Depends(get_db)):
     )
 
 
+@router.post("/verify-reset-otp", response_model=APIResponse[dict])
+async def verify_reset_otp(email: str, otp: str, db: AsyncSession = Depends(get_db)):
+    user = await UserCRUD.get_user_by_email(db, email)
+    if not user or not user.email_verify_token:
+        raise HTTPException(status_code=404, detail="Invalid request")
+
+    try:
+        payload = decode_email_otp_token(user.email_verify_token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="OTP expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+
+    if payload["user"] != email:
+        raise HTTPException(status_code=400, detail="Token email mismatch")
+
+    if payload["otp"] != hash_otp(otp):
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    return APIResponse(success=True, message="OTP verified successfully", data=None)
+
+
 @router.post("/reset-password", response_model=APIResponse[dict])
 async def reset_password(
     email: str,
