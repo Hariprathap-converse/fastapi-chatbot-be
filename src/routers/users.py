@@ -1,15 +1,14 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.auth import hash_password
 from src.core.database import get_db
 from src.crud.users import UserCRUD
-from src.schemas.users import UserResponse, UserCreate, UserUpdate
+from src.exceptions.user_exceptions import UserAlreadyExistsError, UserNotFoundError
 from src.schemas.response import APIResponse
-from src.exceptions.user_exceptions import (
-    UserAlreadyExistsError,
-    UserNotFoundError,
-)
-from src.core.auth import hash_password
-from uuid import UUID
+from src.schemas.users import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -24,7 +23,9 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         new_user = await UserCRUD.create_user(db, **user_data)
         await db.commit()
         await db.refresh(new_user)
-        return APIResponse(success=True, message="User created successfully", data=new_user)
+        return APIResponse(
+            success=True, message="User created successfully", data=new_user
+        )
     except UserAlreadyExistsError as exc:
         await db.rollback()
         raise HTTPException(status_code=409, detail=str(exc))
@@ -57,7 +58,9 @@ async def update_user(
         updated = await UserCRUD.update_user(db, user_id, **user_data)
         await db.commit()
         await db.refresh(updated)
-        return APIResponse(success=True, message="User updated successfully", data=updated)
+        return APIResponse(
+            success=True, message="User updated successfully", data=updated
+        )
     except UserNotFoundError as exc:
         await db.rollback()
         raise HTTPException(status_code=404, detail=str(exc))

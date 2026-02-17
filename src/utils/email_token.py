@@ -1,15 +1,15 @@
-from fastapi import HTTPException
-import smtplib
+import hashlib
 import os
 import secrets
+import smtplib
 import time
-import jwt
-import hashlib
-
 from email.mime.multipart import MIMEMultipart
-from pydantic import EmailStr
-from dotenv import load_dotenv
 from email.mime.text import MIMEText
+
+import jwt
+from dotenv import load_dotenv
+from fastapi import HTTPException
+from pydantic import EmailStr
 
 SECRET_KEY = "CHANGE_THIS_TO_A_STRONG_SECRET"  # use environment variable
 ALGORITHM = "HS256"

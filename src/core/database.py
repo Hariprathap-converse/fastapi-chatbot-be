@@ -1,15 +1,12 @@
 import os
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,  # this is a car factory
-    AsyncEngine,  # The car Bluprint
-    AsyncSession,  # Driver
-    async_sessionmaker,  # Driving school
-)
-from sqlalchemy.orm import DeclarativeBase  # like  a mother class for all the table
-
 from typing import AsyncGenerator  # tell get_db() is slow use sync
 
 from dotenv import load_dotenv  # getting the secret from .env
+from sqlalchemy.ext.asyncio import AsyncEngine  # The car Bluprint
+from sqlalchemy.ext.asyncio import AsyncSession  # Driver
+from sqlalchemy.ext.asyncio import async_sessionmaker  # Driving school
+from sqlalchemy.ext.asyncio import create_async_engine  # this is a car factory
+from sqlalchemy.orm import DeclarativeBase  # like  a mother class for all the table
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")

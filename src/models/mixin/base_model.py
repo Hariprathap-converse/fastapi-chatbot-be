@@ -1,9 +1,10 @@
 import uuid
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import DateTime, func
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
 from typing import Optional
+
+from sqlalchemy import DateTime, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class BaseMixin:

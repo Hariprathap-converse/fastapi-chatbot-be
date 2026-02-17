@@ -19,8 +19,8 @@ class LoginRequest(BaseModel):
 class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., min_length=1)
 
+
 class SendEmailRequest(BaseModel):
     recipient_email: EmailStr
-    subject: str 
-    body: str 
-
+    subject: str
+    body: str

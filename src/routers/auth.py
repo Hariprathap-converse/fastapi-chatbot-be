@@ -1,34 +1,37 @@
-import jwt
 import os
 import smtplib
-from email.mime.text import MIMEText
+from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.database import get_db
-from src.schemas.auth import LoginRequest, Token, RefreshTokenRequest, SendEmailRequest
-from src.schemas.response import APIResponse
-from src.crud.users import UserCRUD
+
 from src.core.auth import (
-    verify_password,
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
+    get_current_user,
     hash_password,
+    verify_password,
 )
+from src.core.database import get_db
+from src.crud.users import UserCRUD
+from src.schemas.auth import LoginRequest, RefreshTokenRequest, SendEmailRequest, Token
+from src.schemas.response import APIResponse
 from src.utils.email_token import (
     decode_email_otp_token,
     generate_email_otp_token,
-    send_otp_email_verification,
     hash_otp,
     send_email,
+    send_otp_email_verification,
 )
-from datetime import datetime, timezone
-from src.core.auth import get_current_user
-from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
 
 @router.post("/tools-send-email", response_model=APIResponse[dict])
 async def tools_send_email(
@@ -39,8 +42,7 @@ async def tools_send_email(
 
     if not sender_email or not email_password:
         raise HTTPException(
-            status_code=500,
-            detail="Email credentials not configured on server"
+            status_code=500, detail="Email credentials not configured on server"
         )
 
     try:
@@ -64,15 +66,11 @@ async def tools_send_email(
         return APIResponse(
             success=True,
             message="Email sent successfully",
-            data={"recipient": payload.recipient_email}
+            data={"recipient": payload.recipient_email},
         )
     except Exception as e:
         print(f"Error sending email: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to send email: {str(e)}"
-        )
-
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
 
 @router.post("/login", response_model=APIResponse[Token])

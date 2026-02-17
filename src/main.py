@@ -1,22 +1,18 @@
-from fastapi import FastAPI, Depends, Request
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.database import get_db, Base, engine
-from src.routers.users import router as user_router
-from src.routers.auth import router as auth_router
-from src.schemas.response import APIResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from src.core.database import Base, engine, get_db
+from src.routers.auth import router as auth_router
+from src.routers.users import router as user_router
+from src.schemas.response import APIResponse
 
 app = FastAPI(title="User Management API")
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "*"
-]
+origins = ["http://localhost:3000", "http://127.0.0.1:3000", "*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,11 +27,7 @@ app.add_middleware(
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(
         status_code=exc.status_code,
-        content=APIResponse(
-            success=False,
-            message=str(exc.detail),
-            data=None
-        ).dict()
+        content=APIResponse(success=False, message=str(exc.detail), data=None).dict(),
     )
 
 
@@ -44,10 +36,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content=APIResponse(
-            success=False,
-            message="Validation Error",
-            data={"errors": exc.errors()}
-        ).dict()
+            success=False, message="Validation Error", data={"errors": exc.errors()}
+        ).dict(),
     )
 
 
@@ -58,8 +48,10 @@ async def general_exception_handler(request: Request, exc: Exception):
         content=APIResponse(
             success=False,
             message="Internal Server Error",
-            data=str(exc)  # Probably shouldn't expose this in prod, but helpful for dev
-        ).dict()
+            data=str(
+                exc
+            ),  # Probably shouldn't expose this in prod, but helpful for dev
+        ).dict(),
     )
 
 
@@ -78,5 +70,5 @@ async def home(db: AsyncSession = Depends(get_db)):
     return APIResponse(
         success=True,
         message="System Operational",
-        data={"status": "Database is connected and async!"}
+        data={"status": "Database is connected and async!"},
     )

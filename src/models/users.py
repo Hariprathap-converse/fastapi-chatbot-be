@@ -1,6 +1,8 @@
-from sqlalchemy import String, Integer, DateTime, Boolean, text, Text
-from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
+
+from sqlalchemy import Boolean, DateTime, Integer, String, Text, text
+from sqlalchemy.orm import Mapped, mapped_column
+
 from src.core.database import Base
 from src.models.mixin.base_model import BaseMixin
 

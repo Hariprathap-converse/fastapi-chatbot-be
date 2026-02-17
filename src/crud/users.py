@@ -1,13 +1,14 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy import update, delete
-from src.models.users import User
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
-from datetime import datetime, timezone
+
+from sqlalchemy import delete, update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from src.exceptions.user_exceptions import UserAlreadyExistsError, UserNotFoundError
+from src.models.users import User
 
 
 class UserCRUD:

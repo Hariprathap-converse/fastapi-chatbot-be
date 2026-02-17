@@ -1,14 +1,16 @@
-from passlib.hash import argon2
+import os
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+
+from dotenv import load_dotenv
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.hash import argon2
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.core.database import get_db
 from src.crud.users import UserCRUD
-from fastapi import Depends, HTTPException, status
-from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
-from typing import Optional
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 

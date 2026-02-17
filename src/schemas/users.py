@@ -1,14 +1,22 @@
-from pydantic import BaseModel, EmailStr, Field, validator, UUID4
-from typing import Optional
 import re
+from typing import Optional
+
+from pydantic import UUID4, BaseModel, EmailStr, Field, validator
 
 
 class UserCreate(BaseModel):
-    first_name: str = Field(..., min_length=1, max_length=100, description="User's first name")
-    last_name: str = Field(..., min_length=1, max_length=100, description="User's last name")
+    first_name: str = Field(
+        ..., min_length=1, max_length=100, description="User's first name"
+    )
+    last_name: str = Field(
+        ..., min_length=1, max_length=100, description="User's last name"
+    )
     email: EmailStr = Field(..., description="User's email address")
     phone_number: str = Field(
-        ..., min_length=1, max_length=15, description="User's phone number with country code"
+        ...,
+        min_length=1,
+        max_length=15,
+        description="User's phone number with country code",
     )
     password: str = Field(
         ..., min_length=6, description="User's password, minimum 6 characters"
